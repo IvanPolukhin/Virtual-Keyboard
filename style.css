@@ -154,3 +154,17 @@ h6 {
     background-color: #1c232e;
     color: #808080;
 }
+
+.key.highlight {
+    background-color: #4CAF50;
+}
+
+.output-container {
+    margin: 10px 0;
+}
+
+.output {
+    width: 100%;
+    height: 100px;
+    overflow: auto;
+}
