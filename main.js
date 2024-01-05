@@ -1,61 +1,129 @@
-document.addEventListener('DOMContentLoaded', function () {
-    window.addEventListener('keydown', function (event) {
-        const key = event.key.toLowerCase();
-        highlightVirtualKey(key);
-        handleSpecialKeys(key, event);
-    });
+document.addEventListener("DOMContentLoaded", function () {
+    const outputTextArea = document.getElementById("output");
+    const cursorIndicator = document.getElementById("cursor-indicator");
+    const virtualKeys = document.querySelectorAll(".key");
+    let isCapsLockOn = false;
+    let isShiftPressed = false;
+    let isRussianLayout = false;
 
-    window.addEventListener('keyup', function (event) {
-        const key = event.key.toLowerCase();
-        clearHighlightedKeys();
-    });
+    function handleVirtualKeyPress(event) {
+        const key = event.target.innerText;
+        insertText(key);
+        highlightKey(event.target);
+    }
 
-    document.querySelector('.keyboard').addEventListener('click', function (event) {
-        if (event.target.classList.contains('key')) {
-            const key = event.target.innerText.toLowerCase();
-            highlightVirtualKey(key);
-            handleSpecialKeys(key, event);
+    function handlePhysicalKeyPress(event) {
+        const key = event.key;
+
+        if (key === "CapsLock") {
+            toggleCapsLock();
+        } else if (key === "Shift") {
+            isShiftPressed = true;
+        } else if (key === "Enter") {
+            insertText("\n");
+        } else if (key === "Backspace") {
+            deleteText(-1);
+        } else if (key === "Delete") {
+            deleteText(1);
+        } else if (key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") {
+            event.preventDefault(); // Prevent default behavior of arrow keys
+            handleArrowKey(key);
+        } else if (key.length === 1) {
+            insertText(key);
         }
-    });
 
-    function highlightVirtualKey(key) {
-        clearHighlightedKeys();
-        const keys = document.querySelectorAll('.key');
-        keys.forEach(function (virtualKey) {
-            if (virtualKey.textContent.toLowerCase() === key) {
-                virtualKey.classList.add('highlight');
+        const virtualKey = getVirtualKey(key);
+        if (virtualKey) {
+            highlightKey(virtualKey);
+        }
+
+        updateCursorPosition();
+    }
+
+    function handleShiftKeyUp() {
+        isShiftPressed = false;
+    }
+
+    function insertText(text) {
+        const currentText = outputTextArea.value;
+        const selectionStart = outputTextArea.selectionStart;
+        const selectionEnd = outputTextArea.selectionEnd;
+        const newText = currentText.substring(0, selectionStart) + text + currentText.substring(selectionEnd);
+        outputTextArea.value = newText;
+        outputTextArea.setSelectionRange(selectionStart + text.length, selectionStart + text.length);
+    }
+
+    function deleteText(direction) {
+        const selectionStart = outputTextArea.selectionStart;
+        const selectionEnd = outputTextArea.selectionEnd;
+
+        if (selectionStart !== selectionEnd) {
+            const currentText = outputTextArea.value;
+            const newText = currentText.substring(0, selectionStart) + currentText.substring(selectionEnd);
+            outputTextArea.value = newText;
+            outputTextArea.setSelectionRange(selectionStart, selectionStart);
+        } else if (direction === -1 && selectionStart > 0) {
+            const currentText = outputTextArea.value;
+            const newText = currentText.substring(0, selectionStart - 1) + currentText.substring(selectionStart);
+            outputTextArea.value = newText;
+            outputTextArea.setSelectionRange(selectionStart - 1, selectionStart - 1);
+        } else if (direction === 1 && selectionStart < outputTextArea.value.length) {
+            const currentText = outputTextArea.value;
+            const newText = currentText.substring(0, selectionStart) + currentText.substring(selectionStart + 1);
+            outputTextArea.value = newText;
+            outputTextArea.setSelectionRange(selectionStart, selectionStart);
+        }
+    }
+
+    function highlightKey(keyElement) {
+        keyElement.classList.add("highlight");
+        setTimeout(() => {
+            keyElement.classList.remove("highlight");
+        }, 200);
+    }
+
+    function toggleCapsLock() {
+        isCapsLockOn = !isCapsLockOn;
+        virtualKeys.forEach((key) => {
+            if (key.textContent.length === 1) {
+                key.textContent = isCapsLockOn ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
             }
         });
     }
 
-    function clearHighlightedKeys() {
-        const keys = document.querySelectorAll('.key');
-        keys.forEach(function (key) {
-            key.classList.remove('highlight');
-        });
+    function handleArrowKey(key) {
+        const selectionStart = outputTextArea.selectionStart;
+
+        if (key === "ArrowLeft" && selectionStart > 0) {
+            outputTextArea.setSelectionRange(selectionStart - 1, selectionStart - 1);
+        } else if (key === "ArrowRight" && selectionStart < outputTextArea.value.length) {
+            outputTextArea.setSelectionRange(selectionStart + 1, selectionStart + 1);
+        }
     }
 
-    function handleSpecialKeys(key, event) {
-        const outputTextarea = document.getElementById('output');
-        outputTextarea.value += key;
+    function getVirtualKey(physicalKey) {
+        return Array.from(virtualKeys).find((key) => key.textContent === physicalKey);
+    }
 
-        if (key === 'enter') {
-            outputTextarea.value = '';
-        } else if (key === 'backspace') {
-            const currentText = outputTextarea.value;
-            outputTextarea.value = currentText.slice(0, -1);
-        } else if (key === 'tab') {
-            event.preventDefault();
+    const langSwitchKey = document.getElementById("alt");
+    langSwitchKey.addEventListener("click", toggleLanguage);
 
-            const cursorPosition = outputTextarea.selectionStart;
+    virtualKeys.forEach((key) => {
+        key.addEventListener("click", handleVirtualKeyPress);
+    });
 
-            const tab = "    ";
+    document.addEventListener("keydown", handlePhysicalKeyPress);
+    document.addEventListener("keyup", handleShiftKeyUp);
 
-            outputTextarea.setRangeText(tab, cursorPosition, cursorPosition, 'end');
-        } else {
-            // outputTextarea.value += key;
-        }
+    function toggleLanguage() {
+        isRussianLayout = !isRussianLayout;
+        const russianLayout = "йцукенгшщзхъфывапролджэячсмитьбю";
+        const englishLayout = "qwertyuiopasdfghjklzxcvbnm";
 
-        outputTextarea.scrollTop = outputTextarea.scrollHeight;
+        virtualKeys.forEach((key, index) => {
+            if (key.textContent.length === 1) {
+                key.textContent = isRussianLayout ? russianLayout[index].toUpperCase() : englishLayout[index].toUpperCase();
+            }
+        });
     }
 });
