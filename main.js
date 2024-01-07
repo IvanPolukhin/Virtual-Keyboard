@@ -7,9 +7,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let isRussianLayout = false;
 
     function handleVirtualKeyPress(event) {
-        const key = event.target.innerText;
-        insertText(key);
-        highlightKey(event.target);
+        const key = event.target;
+        insertText(key.innerText);
+        highlightKey(key);
     }
 
     function handlePhysicalKeyPress(event) {
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (key === "Delete") {
             deleteText(1);
         } else if (key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") {
-            event.preventDefault(); // Prevent default behavior of arrow keys
+            event.preventDefault();
             handleArrowKey(key);
         } else if (key.length === 1) {
             insertText(key);
@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const newText = currentText.substring(0, selectionStart) + text + currentText.substring(selectionEnd);
         outputTextArea.value = newText;
         outputTextArea.setSelectionRange(selectionStart + text.length, selectionStart + text.length);
+        updateCursorPosition();
     }
 
     function deleteText(direction) {
@@ -76,9 +77,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function highlightKey(keyElement) {
-        keyElement.classList.add("highlight");
+        keyElement.classList.add("highlight", "active");
+    
+        if (keyElement.id === "capsLock") {
+            keyElement.classList.toggle("caps-lock", isCapsLockOn);
+        }
+    
+        if (keyElement.classList.contains("special")) {
+            keyElement.classList.add("special-highlight");
+        }
+    
         setTimeout(() => {
-            keyElement.classList.remove("highlight");
+            keyElement.classList.remove("highlight", "active", "caps-lock", "special-highlight");
         }, 200);
     }
 
@@ -126,4 +136,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    function updateCursorPosition() {
+        const cursorPosition = outputTextArea.selectionStart;
+        const textBeforeCursor = outputTextArea.value.substring(0, cursorPosition);
+        const linesBeforeCursor = textBeforeCursor.split("\n");
+        const currentLineNumber = linesBeforeCursor.length;
+        const currentColumnNumber = linesBeforeCursor[linesBeforeCursor.length - 1].length + 1;
+
+        const lineHeight = parseInt(window.getComputedStyle(outputTextArea).lineHeight);
+        const cursorTop = (currentLineNumber - 1) * lineHeight;
+        const cursorLeft = (currentColumnNumber - 1) * 8;
+
+        cursorIndicator.style.top = cursorTop + "px";
+        cursorIndicator.style.left = cursorLeft + "px";
+    }
+
 });

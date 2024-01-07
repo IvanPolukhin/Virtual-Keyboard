@@ -58,6 +58,27 @@ h6 {
     color: #fff;
 }
 
+.key.special {
+    background-color: blue;
+    color: #fff;
+}
+
+.key.special-alt {
+    background-color: blue;
+    color: #fff;
+}
+
+.key.special-highlight {
+    background-color: blue;
+    color: #fff;
+}
+
+.key.special:hover,
+.key.special.active {
+    background-color: blue;
+    color: #fff;
+}
+
 .key:hover {
     background-color: #4CAF50;
     cursor: pointer;
@@ -160,30 +181,45 @@ h6 {
     color: #808080;
 }
 
-.key.highlight {
+.key.highlight.active {
     background-color: #4CAF50;
+    color: #fff;
+}
+
+.key.active {
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.key.caps-lock.active {
+    background-color: #1c232e;
+    color: #4CAF50;
 }
 
 .output-container {
     margin: 10px 0;
 }
 
-.output {
-    width: 100%;
+#output {
+    width: 705px;
     height: 100px;
     overflow: auto;
 }
 
 #cursor-indicator {
     position: absolute;
-    width: 2px; /* ширина курсора */
+    width: 2px;
     background-color: black;
     animation: blink-caret 0.8s infinite;
 }
+
 @keyframes blink-caret {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0;
     }
